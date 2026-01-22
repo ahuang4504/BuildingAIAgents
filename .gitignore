@@ -1,2 +1,4 @@
 .venv
 .env
+*.log
+mmlu_multi_model_results*.json
