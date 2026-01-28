@@ -650,64 +650,85 @@ Example of Per Question Logging for the Verbose Flag
 Model: google/gemma-2-2b-it
 Subject: Astronomy
 "questions": [
-    {
-        "question": "What is true for a type-Ia (\"type one-a\") supernova?",
-        "choices": {
-        "A": "This type occurs in binary systems.",
-        "B": "This type occurs in young galaxies.",
-        "C": "This type produces gamma-ray bursts.",
-        "D": "This type produces high amounts of X-rays."
-        },
-        "predicted_answer": "A",
-        "correct_answer": "A",
-        "is_correct": true
-    },
-    {
-        "question": "If you know both the actual brightness of an object and its apparent brightness from your location then with no other information you can estimate:",
-        "choices": {
-        "A": "Its speed relative to you",
-        "B": "Its composition",
-        "C": "Its size",
-        "D": "Its distance from you"
-        },
-        "predicted_answer": "D",
-        "correct_answer": "D",
-        "is_correct": true
-    },
-    {
-        "question": "Why is the sky blue?",
-        "choices": {
-        "A": "Because the molecules that compose the Earth's atmosphere have a blue-ish color.",
-        "B": "Because the sky reflects the color of the Earth's oceans.",
-        "C": "Because the atmosphere preferentially scatters short wavelengths.",
-        "D": "Because the Earth's atmosphere preferentially absorbs all other colors."
-        },
-        "predicted_answer": "C",
-        "correct_answer": "C",
-        "is_correct": true
-    },
-    {
-        "question": "You\u2019ve made a scientific theory that there is an attractive force between all objects. When will your theory be proven to be correct?",
-        "choices": {
-        "A": "The first time you drop a bowling ball and it falls to the ground proving your hypothesis.",
-        "B": "After you\u2019ve repeated your experiment many times.",
-        "C": "You can never prove your theory to be correct only \u201cyet to be proven wrong\u201d.",
-        "D": "When you and many others have tested the hypothesis."
-        },
-        "predicted_answer": "D",
-        "correct_answer": "C",
-        "is_correct": false
-    },
-    {
-        "question": "Which of the following is/are true?",
-        "choices": {
-        "A": "Titan is the only outer solar system moon with a thick atmosphere",
-        "B": "Titan is the only outer solar system moon with evidence for recent geologic activity",
-        "C": "Titan's atmosphere is composed mostly of hydrocarbons",
-        "D": "A and D"
-        },
-        "predicted_answer": "D",
-        "correct_answer": "D",
-        "is_correct": true
-    },
+{
+"question": "What is true for a type-Ia (\"type one-a\") supernova?",
+"choices": {
+"A": "This type occurs in binary systems.",
+"B": "This type occurs in young galaxies.",
+"C": "This type produces gamma-ray bursts.",
+"D": "This type produces high amounts of X-rays."
+},
+"predicted_answer": "A",
+"correct_answer": "A",
+"is_correct": true
+},
+{
+"question": "If you know both the actual brightness of an object and its apparent brightness from your location then with no other information you can estimate:",
+"choices": {
+"A": "Its speed relative to you",
+"B": "Its composition",
+"C": "Its size",
+"D": "Its distance from you"
+},
+"predicted_answer": "D",
+"correct_answer": "D",
+"is_correct": true
+},
+{
+"question": "Why is the sky blue?",
+"choices": {
+"A": "Because the molecules that compose the Earth's atmosphere have a blue-ish color.",
+"B": "Because the sky reflects the color of the Earth's oceans.",
+"C": "Because the atmosphere preferentially scatters short wavelengths.",
+"D": "Because the Earth's atmosphere preferentially absorbs all other colors."
+},
+"predicted_answer": "C",
+"correct_answer": "C",
+"is_correct": true
+},
+{
+"question": "You\u2019ve made a scientific theory that there is an attractive force between all objects. When will your theory be proven to be correct?",
+"choices": {
+"A": "The first time you drop a bowling ball and it falls to the ground proving your hypothesis.",
+"B": "After you\u2019ve repeated your experiment many times.",
+"C": "You can never prove your theory to be correct only \u201cyet to be proven wrong\u201d.",
+"D": "When you and many others have tested the hypothesis."
+},
+"predicted_answer": "D",
+"correct_answer": "C",
+"is_correct": false
+},
+{
+"question": "Which of the following is/are true?",
+"choices": {
+"A": "Titan is the only outer solar system moon with a thick atmosphere",
+"B": "Titan is the only outer solar system moon with evidence for recent geologic activity",
+"C": "Titan's atmosphere is composed mostly of hydrocarbons",
+"D": "A and D"
+},
+"predicted_answer": "D",
+"correct_answer": "D",
+"is_correct": true
+},
 ]
+
+Q6: Run the code and create graphs of the results. Can you see any patterns to the mistakes each model makes or do they appear random? Do the all the models make mistakes on the same questions?
+
+For this part of the assignment, I created the visualize_mmlu_results.py file. It first scans the directory for all the JSON result files, deduplicating by model and timestamp to keep the latest results for each file. It then loads and parses the JSON into a data structure that then has timing and accuracy metrics extracted from it. From these metrics, a per-question correctness matrix that compares models and questions is built along with calculating mistake correlations. These components are then used to the following 5 graphs:
+
+Graph 1: Timing Comparison
+Using a grouped bar chart we compare between all models the followng three metrics: Wall Time, CPU Time, GPU Time. Since there was no further specification, this comparison is between the same settings for utilizing CPU/GPU and specific quantization. More robust data parsing is needed to create the chart with an additional dimension.
+
+Graph 2: Overall Accuracy
+Using a bar chart, we display a simple accuracy comparison between the models with an indication of base accuracy from random guessing.
+
+Graph 3: Subject Accuracy Heatmap
+Using the correctness matrix, I created a heatmap based on the percentage correctness per subject to help identify subject-specific strengths and weaknesses for each model.
+
+Graph 4: Mistake Overlap
+This horizontal stacked bar shows the distribution of mistakes between 0 models being right to all 3 models being right to answer if models make the same mistakes on the same questions.
+
+Graph 5: Mistake Correlation Heatmap
+Use calculated Pearson correlation metrics between models to quantitatively analyze whether mistakes are systemic or random where a value of 1.0 (red) indicates high correlation and that the models always make the same mistakes, and a value of 0.0 indicates low correlation and that the model makes different/random mistakes.
+
+From these graphs, we can answer the questions from above. We can answer whether the models fail randomly or on the same question from Graph 5 (Mistake Correlation Heatmap) with the Pearson pairwise mistake correlation metrics where binary vectors that represent per-question correctness are evaluated against each other to determine whether models make similar mistakes (correlation high) or they make different mistakes (correlation low). From the graph, we can observe relatively low Pearson correlation metrics with the lowest being 0.142 (OLMo and Gemma) and the highest being only 0.359 (Gemma and Llama), which indicates that the models are failing on different questions "randomly". This is further supported by Graph 3 (Subject Accuracy Heatmap) where the strengths/weaknesses of each model for each subject when compared to the other subjects varied so that are little patterns that can be gleaned from how models tend to perform. Some patterns that can be extrapolated is that Gemma performs the best, OLMo performs the worst, and Llama is in the middle, and the subject strengths/weaknesses: college_physics, college_computer_science, and college_mathematics are universally hard across all models at around the ~25% accuracy range and Gemma excels at college_biology, computer_security, and astronomy while Llama excels at computer_security, clinical knowledge, and college_biology, and OLMo is strongest at business_ethics. Even though the models tend to make mistakes on many of the questions, there are only a small fraction of the questions where all the models are unable to answer them (413 out of ~1337 questions or 30.9%).
