@@ -734,3 +734,43 @@ Use calculated Pearson correlation metrics between models to quantitatively anal
 From these graphs, we can answer the questions from above. We can answer whether the models fail randomly or on the same question from Graph 5 (Mistake Correlation Heatmap) with the Pearson pairwise mistake correlation metrics where binary vectors that represent per-question correctness are evaluated against each other to determine whether models make similar mistakes (correlation high) or they make different mistakes (correlation low). From the graph, we can observe relatively low Pearson correlation metrics with the lowest being 0.142 (OLMo and Gemma) and the highest being only 0.359 (Gemma and Llama), which indicates that the models are failing on different questions "randomly". This is further supported by Graph 3 (Subject Accuracy Heatmap) where the strengths/weaknesses of each model for each subject when compared to the other subjects varied so that are little patterns that can be gleaned from how models tend to perform. Some patterns that can be extrapolated is that Gemma performs the best, OLMo performs the worst, and Llama is in the middle, and the subject strengths/weaknesses: college_physics, college_computer_science, and college_mathematics are universally hard across all models at around the ~25% accuracy range and Gemma excels at college_biology, computer_security, and astronomy while Llama excels at computer_security, clinical knowledge, and college_biology, and OLMo is strongest at business_ethics. Even though the models tend to make mistakes on many of the questions, there are only a small fraction of the questions where all the models are unable to answer them (413 out of ~1337 questions or 30.9%).
 
 Q7: Made a seperate llama_mmlu_eval.ipynb python notebook equivalent of the initial file. Removed logic pertaining to running the evalutation locally on an Apple laptop and the MPS GPU including tool logic for PowerMetrics etc. and instead just used CUDA profiling for the GPUs accessed through Colab. Commented out the function to download the logs since I am using the VSCode extension for Colab but the logic is there. (I did some research and they are still trying to add this feature). I also added the option for the three medium-sized models that just needed to be uncommented out. Results from a sample run of just one medium model is located in the python notebook.
+
+Q8: Create a chat agent running on your laptop using your favorite model.  
+I made both a python script and a python notebook for running the chat agent locally and remotely on Colab respectively. I mainly used the python script and ran the chat agent locally because it was easier.
+
+I implemented Fixed Window for context management. As stated in the provided reading, this method was easy to implement but also primitive in handling context. What I mean by this is that you lose all context if its outside the sliding window and also if the messages are really long or really short, there will either be too many or little tokens in the context. As outlined in the instructions though, this approach can generally handle limiting chat history context from growing without limit while preserving relevant context like recent history and the system prompt.
+
+Below are examples of conversations with history maintained vs. when it is not. As expected, when history is kept, the chat agent is able to refer to previous context and use it in its responses (remember that the favorite color is blue). This is in contrast with when history is not maintained and the chat agent is responding with no previous context and is unable to remember beyond the system prompt and the user prompt(that the favorite color was blue).
+
+======================================================================
+Chat started! Type 'quit' or 'exit' to end the conversation.
+History: ON | Fixed Window: ON (10 msgs)
+======================================================================
+
+You: Hello
+Assistant: How can I help you today?
+
+You: My favorite color is blue
+Assistant: Blue is a calming and beautiful color. It can evoke feelings of trust, loyalty, and serenity. Do you have a favorite shade of blue, or a particular color combination that you like?
+
+You: What is my favorite color?
+Assistant: You said blue earlier!
+
+You: quit
+
+Goodbye!
+
+======================================================================
+Chat started! Type 'quit' or 'exit' to end the conversation.
+History: OFF
+======================================================================
+
+You: My favorite color is blue
+Assistant: Blue is a calming and soothing color. It's often associated with feelings of trust, loyalty, and stability. Do you have a favorite shade of blue, or is it more of a general favorite color for you?
+
+You: What is my favorite color?
+Assistant: I don't have any information about your personal preferences, including your favorite color. I'm a large language model, I don't have the ability to know your personal details or experiences. If you want to share, I'd be happy to chat with you about colors or help you find out your favorite color if you'd like!
+
+You: quit
+
+Goodbye!
