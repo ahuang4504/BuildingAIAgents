@@ -735,6 +735,34 @@ From these graphs, we can answer the questions from above. We can answer whether
 
 Q7: Made a seperate llama_mmlu_eval.ipynb python notebook equivalent of the initial file. Removed logic pertaining to running the evalutation locally on an Apple laptop and the MPS GPU including tool logic for PowerMetrics etc. and instead just used CUDA profiling for the GPUs accessed through Colab. Commented out the function to download the logs since I am using the VSCode extension for Colab but the logic is there. (I did some research and they are still trying to add this feature). I also added the option for the three medium-sized models that just needed to be uncommented out. Results from a sample run of just one medium model is located in the python notebook.
 
+Time the code using the time shell command line function. Compare the timings for the following setups:
+A LITTLE DIFFERENT SINCE LOADING MODELS IS NOT FACTORED IN AND ALSO USING AN A100
+
+1. Using GPU and no quantization.
+   CPU times: user 9.13 s, sys: 1.65 s, total: 10.8 s
+   Wall time: 11.3 s
+
+2. Using GPU and 4-bit quantization. (Not possible on a MacBook, skip if that is your laptop.)
+   CPU times: user 9.06 s, sys: 1.72 s, total: 10.8 s
+   Wall time: 11 s
+
+3. Using GPU and 8-bit quantization. (Not possible on a MacBook, skip if that is your laptop.)
+   CPU times: user 24.6 s, sys: 1.68 s, total: 26.3 s
+   Wall time: 25.3 s
+
+4. Using CPU and no quantization.
+   CPU times: user 8min 6s, sys: 16.1 s, total: 8min 23s
+   Wall time: 1min 30s
+
+5. Using CPU and 4-bit quantization.
+   CPU times: user 8min 11s, sys: 14.4 s, total: 8min 25s
+   Wall time: 1min 30s
+
+From these timings, we can see that the biggest difference is between GPU and CPU where GPU is 8x faster in wall time and a fraction of the CPU time which is to be expected since GPUs spread the work across 5-6 cores (A100) while the CPU is essentially idle since it occupies only one core. Some other findings are that 4-bit on both GPU and CPU is pretty negligible, which Claude attributes to dequantization overhead being negligible for max_new_tokens=1 and bitesandbytes quantization being CUDA-only and not usable on CPUs respectively. Also, the 8-bit on GPU being slower is counterintuitive, but can be explained by bitsandbytes row-wise absmax quantization for better performance on large models at the cost of more per-operation overhead that affects smaller models like Llama-3.2-1B.
+
+The visualizations are located in the python notebook.
+Off the first visualization, something interesting is that the GPU timing never exceeds the CPU timing. However, this is due to using a much more powerful A100 GPU. Along with that, all the timings are all much smaller when using Colab. As expected, overall accuracy also is much higher when using larger models as seen when comparing Figure 2, where the best performing small model did 10% worse than the worst performing medium model. The medium models also had much more diverse accuracies than the smaller models with Qwen performing much better than the OLMo models. I found it interesting that that the Think model performed worse than the previous generation model that had more parameters, which brings into question model capabilities being directly related to parameter count. The medium models also performed much worse on the same subjects: college_chemistry, college_mathematics, college_physics. As reflected in the better accuracies, there were much more questions where all three models got them correct and less in the other categories where only a couple got them right. Finally, as expected, there are higher question miss correlations between the two OLMo models since they have similar architecture, but the OLMos and Qwen models also have similar correlated misses.
+
 Q8: Create a chat agent running on your laptop using your favorite model.  
 I made both a python script and a python notebook for running the chat agent locally and remotely on Colab respectively. I mainly used the python script and ran the chat agent locally because it was easier.
 
