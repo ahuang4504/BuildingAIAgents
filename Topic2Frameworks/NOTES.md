@@ -367,3 +367,5 @@ Enter your text (or 'quit' to exit):
 > 
 You: quit
 Goodbye!
+
+Q7: The example in the notebook displays retrieving a checkpointed chat and restarting it.
