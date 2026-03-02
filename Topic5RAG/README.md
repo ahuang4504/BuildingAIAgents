@@ -868,4 +868,42 @@ A chunk size of 512 seemed to be the sweet spot for the Model T manual. It had t
 
 Yes the optimal size does depend on the type of question. For simple questions like "what oil should I use," a small chunk size like 128 is sufficient since the answer is short. However, for questions like asking for multi-step procedures, a chunk size of 512 was better as it was able to retrieve full blocks of procedures where a chunk size of 128 would have cut off. As stated before, a chunk size of 2048 gave too much context and would confuse the LLM with irrelevant information.
 
-Waiting on group member for Exercises 9-11
+### Exercise 9
+
+**Analysis of Similarity Scores (Top 10 Chunks)**
+
+* **Score Distribution Patterns:**
+    * **Clear Winners:** Queries like "Regulation (EU) 2024/1689" and "Model T Carburetor" showed a clear gap (~0.03–0.04) between the #1 and #2 results, indicating a highly specific semantic match.
+    * **Clustered/Ambiguous:** Themes like "opening prayers" in the House resulted in very low, tightly clustered scores (around 0.48–0.50). This suggests the retriever found "vaguely religious" text across many documents but no "perfect" answer.
+* **Threshold Recommendation:** Based on the logs, a **threshold of 0.60 to 0.65** is the sweet spot.
+    * Above 0.65, results were almost always highly relevant.
+    * Below 0.55, the pipeline started pulling "noise" (e.g., pulling Learjet engine data for a Model T question).
+* **Effect of threshold on results:**  Using too low of a threshold resulted in unrelated sources being pulled in, which could negatively impact generation depending on how the question was prompted.
+
+### Exercise 10 
+
+**Overall Conclusion**
+
+The results were pretty consistent across prompt templates in most circumstances, however there were a few instances where the various templates resulted in meaningful differences in output.
+
+**Evaluation of System Prompts on Generation Quality**
+
+- Accuracy: strict_grounding was the most accurate for preventing hallucinations. It forced the model to admit when information was missing rather than guessing.
+
+- Usefulness: structured_output produced the most useful results. The explicit fact-listing phase acted made the final synthesis appear more systematic and grounded.
+
+- The Trade-off: There is a clear tension between strict grounding and helpfulness. Strict grounding ensures accuracy but results in a "stiff" user experience (even resulting in one answer being totally imcomplete), whereas more permissive prompts feel more natural but introduces data not present in the corpora.
+
+### Exercise 11
+
+**Analysis of Model Performance Across k=3, k=5, and k=10**
+
+* **Synthesis Capability:** The model successfully aggregated lists (e.g., safety warnings) from multiple files but failed at complex comparisons. When asked to compare procedures, it often concluded they were identical because the retrieved text lacked specific labels for comparison.
+* **Impact of top_k:** At k=3, the model occasionally "forced" an answer from limited data. At k=10, the increased context allowed the model to self-correct and admit when specific information (like a monthly schedule) was actually missing from the manual.
+* **Data Gaps:** Synthesis did not compensate for missing information. If a task wasn't in the top-k results, the model couldn't "reason" its existence. Retrieval noise at k=10 was generally ignored during the final synthesis step.
+
+**Documented Findings**
+
+* **Success:** The model is a reliable list aggregator for broad summaries but struggles with multi-hop logical tasks.
+* **Missing Info:** The model is strictly bound by retrieval; it cannot synthesize facts that were not captured in the top-k chunks.
+* **Conflicts:** No major contradictions occurred; the model often defaulted to a "not mentioned" or identical response when faced with ambiguity.
