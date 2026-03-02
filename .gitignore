@@ -5,3 +5,5 @@ mmlu_multi_model_results*.json
 __pycache__/
 *.db*
 threads.json
+Corpora
+.DS_Store
