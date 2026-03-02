@@ -1,0 +1,65 @@
+Extracted 60 frames (one every ~2 seconds)
+
+[00:00] Frame 1/60 — No person
+[00:02] Frame 2/60 — No person
+[00:04] Frame 3/60 — No person
+[00:06] Frame 4/60 — No person
+[00:08] Frame 5/60 — No person
+[00:10] Frame 6/60 — No person
+[00:12] Frame 7/60 — No person
+[00:14] Frame 8/60 — No person
+[00:16] Frame 9/60 — No person
+[00:18] Frame 10/60 — No person
+[00:20] Frame 11/60 — No person
+[00:22] Frame 12/60 — No person
+[00:24] Frame 13/60 — No person
+[00:26] Frame 14/60 — No person
+[00:28] Frame 15/60 — No person
+[00:30] Frame 16/60 — No person
+[00:32] Frame 17/60 — No person
+[00:34] Frame 18/60 — No person
+[00:36] Frame 19/60 — No person
+[00:38] Frame 20/60 — No person
+[00:40] Frame 21/60 — No person
+[00:42] Frame 22/60 — No person
+[00:44] Frame 23/60 — No person
+[00:46] Frame 24/60 — Person detected
+[00:48] Frame 25/60 — Person detected
+[00:50] Frame 26/60 — Person detected
+[00:52] Frame 27/60 — Person detected
+[00:54] Frame 28/60 — No person
+[00:56] Frame 29/60 — No person
+[00:58] Frame 30/60 — No person
+[01:00] Frame 31/60 — No person
+[01:02] Frame 32/60 — No person
+[01:04] Frame 33/60 — No person
+[01:06] Frame 34/60 — No person
+[01:08] Frame 35/60 — No person
+[01:10] Frame 36/60 — No person
+[01:12] Frame 37/60 — No person
+[01:14] Frame 38/60 — No person
+[01:16] Frame 39/60 — No person
+[01:18] Frame 40/60 — No person
+[01:20] Frame 41/60 — No person
+[01:22] Frame 42/60 — No person
+[01:24] Frame 43/60 — No person
+[01:26] Frame 44/60 — No person
+[01:28] Frame 45/60 — No person
+[01:30] Frame 46/60 — No person
+[01:32] Frame 47/60 — No person
+[01:34] Frame 48/60 — No person
+[01:36] Frame 49/60 — No person
+[01:38] Frame 50/60 — No person
+[01:40] Frame 51/60 — No person
+[01:42] Frame 52/60 — No person
+[01:44] Frame 53/60 — No person
+[01:46] Frame 54/60 — No person
+[01:48] Frame 55/60 — No person
+[01:50] Frame 56/60 — No person
+[01:52] Frame 57/60 — No person
+[01:54] Frame 58/60 — No person
+[01:56] Frame 59/60 — No person
+[01:58] Frame 60/60 — No person
+
+Person ENTERED at 00:46
+Person EXITED at 00:56
