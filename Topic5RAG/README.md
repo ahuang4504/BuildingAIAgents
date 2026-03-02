@@ -821,3 +821,51 @@ After testing a variety of unanswerable questions, a consistent behavior is that
 "Vulnerable Children ......................................................."
 "Blind Children ......................................................."
 "HIV/AIDS ..........................................."'. This is an instance that reinforces that in the context of these questions, the retrieved context didn't help (in the context of coming up with a good answer -> helped the model generation) nor hurt, but instead offered content for the model to build up a vague thought. In the question about healthcare, the model is even able to observe that "there is no specific mention of what Congress discussed about healthcare on January 20, 2025. The context focuses on discussions related to healthcare reform, particularly focusing on potential changes or issues with healthcare policies in place around January 8, 2026" and concludes that it has insufficient information. It admits it doesn't know, doesn't hallucinate, and doesn't use the retrieved context besides noticing the date. Finally, on the question about Mr. Flood saying bad things about Mayor David Black, the model says that there is no indication there were bad things said and cites that pulled context only reflects positive words. It admits it can't find examples of badmouthing, doesn't hallucinate, and uses the retrieved context to justify that only good things were said (helps). After modifying the prompt to tell the model to explicitly say "I cannot answer this from the available documents.", the model generates "I cannot answer this from the available documents" for ALL responses along with some justification in the first and third question. To further test unanswerable questions, I could come up with questions where I could guarantee there would be no similar topics to the text. For example, the question about healthcare from a different time would have fetched related context about healthcare from 2026 instead of 2025 which is unanswerable but shares similar content. However, I would argue that if the model is able to distinguish and clarify that it is unable to answer the question since the times don't match up, this is harder than answering an outright completely different problem and the model should be able to easily address that it is unable to answer the unanswerable question. I was surprised by how effective the tweak in the prompt was and did not know that instructing the model exactly what to say could short circuit the response. I would say that it helped since even though the model already recognized that it couldn't answer the questions, it would now explicitly say at the start that it couldn't.
+
+## Exercise 6
+
+### Which phrasings retrieve the best chunks?
+
+"When do I need to check the engine?" scored a 0.5496 and retrieved very specific chunks about engine diagnostics. "How often should I service the engine?" and "engine oil change lubrication schedule" scored 0.5085 and 0.5109 respectively, and were able to retrieve relevant information about oil change intervals, inspection schedules, and more. "Preventive maintenance requirements" did not perform as well with a score of 0.4125 and retrieved relatively less relevant chunks about dealer inventory and shop equipment.
+
+### Do keyword-style queries work better or worse than natural questions?
+
+I found that the specific vocabulary mattered more than the style of querying. For example, for keyword-style, "Engine oil change lubrication schedule" scored very well, while "engine maintenance intervals" did not. On the other hand, for natural language question, "How often should I service the engine?" scored well, but doesn't seem to be because of the way the query was worded but rather the vocabulary used.
+
+### What does this tell you about potential query rewriting strategies?
+
+When querying, it's best to use specific terminology found in the documents (like "oil change" and "lubrication") rather than abstract terms like "preventive maintenance requirements." In addition, some phrases like "When do I need to check the engine?" had a 0/5 overlap with the formal phrasing despite high scores. This shows that retrieval is very sensitive to wording.
+
+## Exercise 7
+
+### Does higher overlap improve retrieval of complete information?
+
+Higher overlap does not necessarily improve retrieval of complete information. overlap = 0 scored surprisingly well with a top score of 0.6185 and average top 5 score of 0.8070. However, overlap = 128 does better with a top score of 0.6044 and average top 5 score of 0.7024. In the middle though, overlap = 64 does worse than both of these with a top score of 0.7864 and average top 5 score of 0.8088. This shows that there is a sweet spot for the amount of overlap for retrieval of complete information.
+
+### What's the cost? (Index size, redundant information in context)
+
+The cost of going from overlap = 0 to overlap = 256 resulted in over 2 times as many chunks (2320 to 5215) and over 2 times as much time to build the index (4.1s to 9.5s). In addition, when moving to Overlap 256, the information became redundant as ranks 2, 3, and 4 had almost identical text relating to cylinder head bolt holes (just with a slight offset). This wastes the LLM's context window with a lot of duplicate information.
+
+### Is there a point of diminishing returns?
+
+Yes, as overlap = 128 seems to be the sweet spot with the top score of 0.6044 and best average top 5 score of 0.7024. However, increasing the overlap to 256 actually resulted in a lower top score and lower average top 5. In addition, it required almost double the chunk count without improving retrieval quality.
+
+## Exercise 8
+
+### How does chunk size affect retrieval precision (relevant vs. irrelevant content)?
+
+A smaller chunk size of 128 was able to retrieve more precise text but could not always capture the full context. A medium chunk size of 512 seemed to be the perfect balance between retrieving relevant information while still providing enough context to be useful. A large chunk size of 2048 seemed to hurt precision as it was able to retrieve relevant blocks of information, but a significant amount of irrelevant information with it.
+
+### How does it affect answer completeness?
+
+Chunk size of 128 produced incomplete answers. While it would provide relevant information (or phrases), it wouldn't be of any substance. Chunk size of 512 produced the most complete answers. It was able to provide relevant information with multi-step procedures. Chunk size of 2048 produced longer answers but were often hallucinated or off topic. It would take in the irrelevant context and use it to create an answer that has nothing to do with the initial question.
+
+### Is there a sweet spot for your corpus?
+
+A chunk size of 512 seemed to be the sweet spot for the Model T manual. It had the best balance of relevant retrieval and answer completeness. The summary scores also seem to reflect this as 512 had the best average top score.
+
+### Does optimal size depend on the type of question?
+
+Yes the optimal size does depend on the type of question. For simple questions like "what oil should I use," a small chunk size like 128 is sufficient since the answer is short. However, for questions like asking for multi-step procedures, a chunk size of 512 was better as it was able to retrieve full blocks of procedures where a chunk size of 128 would have cut off. As stated before, a chunk size of 2048 gave too much context and would confuse the LLM with irrelevant information.
+
+Waiting on group member for Exercises 9-11

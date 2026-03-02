@@ -1,3 +1,15 @@
+# Topic 2: Frameworks
+
+## Files
+
+| File | Description |
+|---|---|
+| `langgraph_simple_llama_agent.py` | LangGraph multi-agent chat (Llama + Qwen via Ollama) |
+| `langgraph_simple_llama_agent.ipynb` | Notebook version of the same agent |
+| `requirements.txt` | Python dependencies |
+
+---
+
 Q2: See what happens when you give the program an empty input. Record what it does. Try another empty input. What happens this time? What does this reveal about less large and sophisticated LLMs such as the one here, llama-3.2b-instruct?
 
 Output from Empty Input 1:

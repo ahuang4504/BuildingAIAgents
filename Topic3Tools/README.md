@@ -1,3 +1,18 @@
+# Topic 3: Tools
+
+## Files
+
+| File | Description |
+|---|---|
+| `topic3_parallel_mmlu.ipynb` | Parallel MMLU benchmark experiment (sequential vs parallel subprocess timing) |
+| `gpt4omini_test.py` | Basic OpenAI API connectivity test |
+| `manual-tool-handling.py` | Manual tool dispatch loop with `gpt-4o-mini` (calculator + weather tools) |
+| `langgraph-tool-handling.py` | Same tools wired through LangGraph ToolNode |
+| `conversation_agent.py` | Persistent conversation agent with SQLite checkpointing and thread resume |
+| `conversation_agent.md` | Documentation and design notes for the conversation agent |
+
+---
+
 Q1: Observations
 
 Topics Evaluated

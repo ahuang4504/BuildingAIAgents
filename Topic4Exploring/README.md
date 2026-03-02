@@ -4,6 +4,7 @@ Note: I had Claude Code help format this README.md since it's good at helping wi
 
 ## Table of Contents
 
+- [NOTES.md](#NOTESmd)
 - [toolnode_example.py](#toolnode_examplepy)
 - [react_agent_example.py](#react_agent_examplepy)
 - [youtube_analyzer.py](#youtube_analyzerpy)
@@ -13,6 +14,12 @@ Note: I had Claude Code help format this README.md since it's good at helping wi
   - [UI Features](#ui-features)
   - [Architecture](#architecture)
   - [Notes](#notes)
+
+---
+
+## NOTES.md
+
+Answers to question for part 3 of topic about the code of  toolnode_example.py and react_agent_example.py.
 
 ---
 
