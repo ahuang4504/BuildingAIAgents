@@ -1,0 +1,85 @@
+# Topic 7: MCP & A2A
+
+## MCP Tool Integration with Ai2 Asta
+
+Exercise A: Discover the Asta Tools answers are in comments at the top of exercise1.py
+
+Exercise B: Direct Asta Tool Calls — Three Focused Drills
+Discussion after drills: What differences did you notice in the structure of results across the three tools? How did you handle the JSON returned inside the content[0]["text"] field?
+
+The differences in structured results across the three tools are as follows: search_papers_by_relevance returns a flat list of paper objects that can then be accessed for requested paper-specific field, get_citations is similar but each item is a citation wrapper where the paper lives one level deeper and needs to get accessed as a field, and get_paper returns only a single object (one of the items in search_papers_by_relevance for example) which gets accessed and references lives as a field in that object. At a higher level, the first two tools return an iterable list of papers/citations while the third returns a single paper. To handle the JSON returned inside the content[0]["text"] field, I use: [json.loads(item["text"]) for item in result["content"]]. This is because every item["text"] is a JSON string that needs to be parsed with json.loads() (JSON inside JSON). We deserialize every content item to return plain Python dicts that conform to the shape of that returned by the tool.
+
+Exercise C: Asta-Powered Research Chatbot
+Discussion: What changed compared to calling tools manually in Exercise B? You wrote almost no tool-specific code — the schema came from the server. The chatbot would work identically if Asta added new tools tomorrow. That is the core value of MCP.
+
+Exercise C is a step above Exercise B since it relies on MCP's abstraction so that it is extendable and relies on API contracts. What this means is that Exercise B relied on hardcoding everything using tool-specific names, parameter names, and response shape (needed to be interpreted explicitly). I had to read the Asta docs, manually write the response body, and unpack the different structured results. Exercise C, instead, has zero tool-specific code by dispatching using the tool name that the model will output. At runtime, the model reads tool descriptions and schemas and decides how to call them along with how to interpret results. This reinforces the core value of MCP, where it acts like an "app store" for tools that the model can use on its own without a human needing to explicitly instruct it.
+
+Closing Discussion:
+
+- You wrote tool schemas by hand in concept, then saw MCP provide them dynamically. What does this automation buy you? What does it cost (complexity, new failure modes)?
+
+The new automation means that there is zero tool maintenance for the developer since they work purely with an interface and the underlying logic correctness is delegated to the MCP and tool developers. Additionally, the correct formatting for input and output is handled by the intrinsic knowledge of the models. The only thing a developer has to do is pipeline or guide the model towards how to access these tools through what MCPs. This is displayed through the abstraction in exercise C. This automation does have a cost though, which is the shift in logic responsibility. We are now trusting the LLM to correctly format input to these tools and then ingest the output to generate responses, which introduces the possibility of errors that propagate further. Additionally, beyond the LLM itself, if any tool providers mess up, the errors can continue propogating further since developers are no longer explicitly handling tool responses which are instead ingested by the model in a self-contained loop that humans don't interact with. This self-contained loop also entails reduced observability since the agent handles decision-making and execution themselves.
+
+- The Asta tools return rich JSON. How did you decide what to include in the context window and what to discard? What happened to response quality when you passed everything vs. a summary?
+
+In these exercises, we decided what to include vs. what to discard by explicitly listing what fields we wanted. Otherwise, the API would return dozens of unneeded fields per paper like external IDs, other URLs, venue, open access info, TLDR, etc. When I passed everything, the response quality dropped since the raw full-paper JSON for the 10+ papers would flood the context window of the LLM with extraneous information that only served to confuse the model. The noise caused the model to create longer, less precise summaries that were just ramblings. Instead, when we only passed a summary, the needed information was consolidated into succinct text sections that wouldn't bog the model's attention range down and would ultimately allow the model to digest, understand, and create targeted, precise summaries.
+
+- In Exercise D, you controlled the tool-calling order. What would it take to let the LLM decide the order? What could go wrong?
+
+To let the LLM decide the order of what tools to call, we would just remove the fixed pipeline that explicitly calls the tools in sequential order and instead replace it with the loop in exerciseC where we initially give the model available tools, describe the goal, and let it plan the sequence itself. While this adopts a more agentic approach, it introduces errors like dependency errors mentioned in the problem statement where a tool call is dependent on the output of another and the tools are called in the wrong order; an example would be calling get_author_papers before getting authorIds from get_paper which would lead to hallucinations. Additionally, the non-deterministic nature of LLMs could yield different results with the same task because different tools were used.
+
+- MCP is a relatively young standard. What would you want a mature MCP ecosystem to offer that is not available today?
+
+I would like a more mature MCP ecosystem to have versioned schemas with changelogs. Currently, if any MCP provider renames a parameter, the agent would try to use the old name and silently break as a tool failure. Instead, an improvement would be for the MCP providers to expose a versioned tool list so that a client model could negotiate and reason through compatibility and work towards using the right parameter like a developer would.
+
+## MCP vs A2A: How is sending a task to another agent different from calling an MCP tool? What can an agent do that a tool cannot?
+
+An MCP tool is stateless and synchronous where you just pass in arguments and it runs logic like a function call, to ultimately give back a result. It has no reasoning capabilities, context beyond what you handed it, memory of previous calls, and ability to ask follow-up questions, doing only one thing and stopping.
+
+An agent is different in that it receives a goal, not a function call, and then figures out how to get there on its own. It picks tools, handles failures, keeps track of intermediate results, and stops when it's satisfied with the answer, similar to the agent that invoked it. It can decompose a vague task into steps and if one step breaks, it tries something else instead of just crashing. It can also call other agents, which is interesting because our sports agent could decide to forward a statistics-heavy question to a separate data agent without the orchestrator ever knowing that happened. A tool can't do any of that since it just runs and returns without any agentic capabilities.
+
+## Discovery: We used a central registry. What are the alternatives? What are the tradeoffs of centralized vs decentralized discovery?
+
+In this exercise, we used a single server that all agents registered with and all orchestrators queried. This setup is the simplest one where there is one source of truth that handles all agent queries. The alternatives get more interesting at scale, where peer-to-peer discovery works like early BitTorrent since each agent knows a few neighbors and floods capability queries outward until something matches. There's no single point of failure, but it's slow and you're never guaranteed to find everything. DNS-style hierarchical registries organize things in a tree with domain-specific registries (like "science agents" or "finance agents") that feed up to a root, which is more robust but means you're running real infrastructure now. Pub-sub systems like Kafka or NATS let agents broadcast their capabilities to a bus and orchestrators subscribe to it, which is fast once you're connected, but the bus itself becomes the new single point of failure. Then there's capability-based addressing where agents describe themselves as vector embeddings in a shared store and orchestrators find them by nearest-neighbor search, which seems like the right approach for thousands of agents across different organizations. And finally hard-coded routing, which is exactly what it sounds like: a static map from capability to URL with zero discovery overhead, completely predictable, but requires someone to manually update it whenever anything changes.
+
+The core tradeoff is really reliability versus simplicity. Centralized is one hop to find anything, strong consistency, and easy to remove stale entries, but the registry going down means nothing can route at all. Additionally, the centralized registry can be overwhelmed if it gets flooded by queries. Decentralized has no single failure point and scales horizontally, but discovery is slower, different nodes can have different views of who's alive, and propagating agent removals is genuinely hard to get right.
+
+For our class exercise, centralized fits best. At production scale across organizations, you'd probably want something hierarchical or vector-based.
+
+## System prompts as strategy: How much did the system prompt matter for scoring? Could you craft a prompt that is good at all categories while still being funny on off-topic questions?
+
+The system prompt mattered more than almost anything else, including model choice, at least for simple factual questions. It defines three things: what counts as in-domain, how confident and direct the answers sound, and what the agent does when someone asks about something outside its specialty. My strategy was that since our topic was sports, I included every sport and sports related terminology in it to capture all sports related questions. A vague prompt introduces uncertainty into answers and without explicit off-topic instructions the agent either refuses silently or hallucinates, both of which hurt scores.
+
+The interesting tension is that scoring well on in-domain questions requires precision and confidence, while being funny on off-topic ones requires fully committing to an absurd premise. These don't actually conflict but they need to be explicitly separated in the prompt. Our beaver prompt does this by having two clear modes: for sports, be accurate and direct, and for everything else, go full beaver universe. What makes it work is that the beaver universe has internal consistency since beavers built Paris, beavers discovered calculus, etc., which is funnier and more coherent than just outputting random nonsense each time.
+
+I think you could write a prompt that does both well. You'd define the domain precisely rather than vaguely, give a concrete rule for borderline cases like "if it could be sports-adjacent, treat it as sports", give the comedic persona a consistent internal logic, and never break character to acknowledge the joke. The main scoring risk is borderline questions where if your domain is defined too narrowly, something like "what's the physics of a curveball?" triggers the funny mode when a straight answer would have scored better.
+
+## Smart routing: TF-IDF matched questions to agents based on text overlap. What would happen with semantic embeddings instead? What if agents could self-report confidence?
+
+TF-IDF matches on shared words, so a question with "touchdown" scores high for our sports agent because "touchdown" is in its description. It breaks whenever vocabulary diverges, so "who holds the record for the most hat-tricks in the Premier League?" might not match an agent whose description says "goals" and "soccer" but never mentions "hat-tricks."
+
+Semantic embeddings would fix this by putting questions and agent descriptions into a shared vector space where meaning, not just words, drives similarity. "Hat-tricks" and "soccer goal scoring records" would land near each other even with zero word overlap. You'd also get synonym handling and something genuinely useful which is ambiguity detection, since when a question sits roughly equidistant from two agents you know to either ask for clarification or route to both of them.
+
+The failure mode I noticed with embeddings though is over-generalization. "What is the fastest animal?" might embed near both a sports agent and a biology agent because "fastest" pulls in both directions, but TF-IDF would correctly route it to biology since there are no sports keywords. So embeddings would need a confidence threshold below which you fall back to a generalist.
+
+Self-reported confidence would add a second useful signal where you send the question to your top candidates, ask each how confident it is, and route to the winner or weight their answers by score. The problem is miscalibration since an overconfident wrong agent is worse than a hedging correct one, and a broken agent could just claim maximum confidence on everything to hijack all routing. A more robust version would ask agents to briefly explain why they're confident and then run a meta-evaluator on the reasoning, which is more expensive but harder to game.
+
+## Trust and reliability: In a real multi-agent system, how would you handle an agent that returns bad data? What if an agent is slow or goes offline mid-task?
+
+In a single-agent system a bad output is the system's problem. In a multi-agent one, a bad output from one agent propagates downstream if the orchestrator doesn't catch it, which is a much harder failure to notice and debug.
+
+For bad data, I'd validate every response against a schema before using it so empty, malformed, or wildly long answers get rejected and flagged instead of forwarded. Requiring agents to cite what they're basing answers on also helps a lot since an unsourced answer is easier to flag than a plausibly wrong cited one. For high-stakes questions, sending to two agents independently and checking for agreement would work, where disagreement triggers a tiebreaker or escalates to a human. Over time you could spot-check random samples against known-correct answers and build per-agent reliability scores that feed back into routing so less reliable agents get less traffic.
+
+For slow or offline agents, every call should have a timeout and if the agent doesn't respond in time, the orchestrator retries a different one or returns a graceful fallback instead of hanging forever. After enough consecutive failures you'd stop sending that agent traffic at all for a cooldown period, which is the circuit breaker pattern. For latency-sensitive requests you could send to your top two candidates simultaneously and use whoever responds first. Agents that fail repeated health checks get pulled from the routing pool, and registry entries should expire automatically so a crashed agent that never deregisters doesn't haunt the system indefinitely. Tasks that can't complete at all should go to a queue for later retry rather than just disappearing silently.
+
+## Scaling: What would break if there were 1,000 agents instead of 20? What architectural changes would you need?
+
+At 20 agents almost nothing breaks, but at 1,000 several things would break at once.
+
+The registry would saturate first since a single HTTP service answering routing queries from every orchestrator for every request will hit limits fast and you'd need the registry replicated and load-balanced or backed by something like Redis or etcd with consistent hashing. Rate limiting per agent and cost budgets per task would also matter a lot since 1,000 agents calling each other freely would run up a bill very fast.
+
+TF-IDF gets slow next. Scoring a question against 1,000 descriptions on every query is O(N) and still manageable at that scale, but at 10,000 you'd need pre-indexed retrieval like vector search or inverted indexes that don't scan everything every time.
+
+Routing also gets ambiguous since with 20 agents the specialties are mostly distinct, but with 1,000 you'd have 50 sports agents, 30 cooking agents, and 10 that claim to do both. The orchestrator would need to decide whether to pick one or fan out to several, which requires hierarchical categories and aggregation logic that didn't exist before.
+
+Debugging becomes a real problem too since a failed task that touched five agents across three hops is nearly impossible to diagnose without distributed tracing. You'd need correlation IDs on every request, structured logs, and something like OpenTelemetry to piece the trace back together.
