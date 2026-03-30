@@ -14,6 +14,10 @@ Discussion: What changed compared to calling tools manually in Exercise B? You w
 
 Exercise C is a step above Exercise B since it relies on MCP's abstraction so that it is extendable and relies on API contracts. What this means is that Exercise B relied on hardcoding everything using tool-specific names, parameter names, and response shape (needed to be interpreted explicitly). I had to read the Asta docs, manually write the response body, and unpack the different structured results. Exercise C, instead, has zero tool-specific code by dispatching using the tool name that the model will output. At runtime, the model reads tool descriptions and schemas and decides how to call them along with how to interpret results. This reinforces the core value of MCP, where it acts like an "app store" for tools that the model can use on its own without a human needing to explicitly instruct it.
 
+How well did TF-IDF matching perform? What would work better? How might this compare to semantic embeddings?
+
+Look at the discussion below. 
+
 Closing Discussion:
 
 - You wrote tool schemas by hand in concept, then saw MCP provide them dynamically. What does this automation buy you? What does it cost (complexity, new failure modes)?
