@@ -1,5 +1,7 @@
 # VibeCheck Report
 
+Used AI to help format and rewrite some parts.
+
 ## Motivation
 
 AI coding agents like Claude Code have collapsed the cost of _producing_ code, but they have also collapsed the cost of _accepting_ code the user does not actually understand. The result is a quiet, growing pile of epistemic debt: working software whose author cannot maintain, debug, or reason about it. The usual guardrails (linters, type checkers, code review) catch correctness issues, but they say nothing about whether the human in the loop is keeping up.
